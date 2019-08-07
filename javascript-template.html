@@ -2,14 +2,35 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>TODO title</title>
+    <title>Asteroids</title>
     <style></style>
   </head>
 
   <body>
-    <div id="output_div"></div>
+    <!-- Add game canvas: -->
+    <canvas id="gameCanvas" width="700" height="500"></canvas>
     <script>
-      // TODO JavaScript
+      var FPS = 30; // constant FPS - frames rate = 30 frames per secound
+
+      /** @type {HTMLCanvasElement} */
+      // variable canv
+      var canv = document.getElementById("gameCanvas");
+      // now need context from canvas
+      var ctx = canv.getContext("2d");
+      // set up game loop - it require handfler funtion name update, and timeout in ms 1000 / FPS (frame rate)
+      setInterval(update);
+
+      function update() {
+        // draw space
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canv.width, canv.height);
+
+        // draw spcace-ship
+
+        // totate the space-ship
+
+        // move the space-ship
+      }
     </script>
   </body>
 </html>
