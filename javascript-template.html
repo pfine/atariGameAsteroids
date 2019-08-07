@@ -27,6 +27,16 @@
         a: (90 / 180) * Math.PI // direction of the ship - a for angel convert to radians - face top 90deg
       };
 
+      // set up event handlers to wait for keyDown and and kyeUp
+      document.addEventListener("keydown", keyDown);
+      document.addEventListener("keyup", keyUp);
+      function keyDown(params) {
+        
+      };
+      function keyUp(params) {
+        
+      }
+
       // set up game loop - it require handfler funtion name update, and timeout in ms 1000 / FPS (frame rate)
       setInterval(update);
 
@@ -41,18 +51,18 @@
         ctx.beginPath();
         ctx.moveTo(
           // nose of the space-ship
-          ship.x + 4 / 3 * ship.r * Math.cos(ship.a),
-          ship.y - 4 / 3 * ship.r * Math.sin(ship.a)
+          ship.x + (4 / 3) * ship.r * Math.cos(ship.a),
+          ship.y - (4 / 3) * ship.r * Math.sin(ship.a)
         );
         ctx.lineTo(
           // rear left
-          ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-          ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+          ship.x - ship.r * ((2 / 3) * Math.cos(ship.a) + Math.sin(ship.a)),
+          ship.y + ship.r * ((2 / 3) * Math.sin(ship.a) - Math.cos(ship.a))
         );
         ctx.lineTo(
           // rear right
-          ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-          ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+          ship.x - ship.r * ((2 / 3) * Math.cos(ship.a) - Math.sin(ship.a)),
+          ship.y + ship.r * ((2 / 3) * Math.sin(ship.a) + Math.cos(ship.a))
         );
         ctx.closePath();
         ctx.stroke();
