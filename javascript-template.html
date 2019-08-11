@@ -10,10 +10,11 @@
     <!-- Add game canvas: -->
     <canvas id="gameCanvas" width="700" height="500"></canvas>
     <script>
-      var FPS = 30; // constant FPS - frames rate = 30 frames per secound
-      var SHIP_SIZE = 30; // space ship size in pixels
-      var SHIP_THRUST = 5; // acceleration of the space-ship in px / sec / sec (1s: 5px, 2s: 10px, 3s: 15px ...)
-      var TURN_SPEED = 360; // turn speed in degrees pre second
+      const FPS = 30; // constant FPS - frames rate = 30 frames per secound
+      const FRICTION = 0.7; // friction coefficient of space ;D (0 - none, real space, 1 - lots of it)
+      const SHIP_SIZE = 30; // space ship size in pixels
+      const SHIP_THRUST = 5; // acceleration of the space-ship in px / sec / sec (1s: 5px, 2s: 10px, 3s: 15px ...)
+      const TURN_SPEED = 360; // turn speed in degrees pre second
 
       /** @type {HTMLCanvasElement} */
       // variable canv
@@ -80,6 +81,10 @@
         if (ship.thrusting) {
           ship.thrust.x += (SHIP_THRUST * Math.cos(ship.a)) / FPS;
           ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.a)) / FPS;
+        } else {
+          // when not thrusting it will slow down in FRICTION ś
+          ship.thrust.x -= (FRICTION * ship.thrust.x) / FPS;
+          ship.thrust.y -= (FRICTION * ship.thrust.y) / FPS;
         }
 
         // draw triangular spcace-ship
@@ -110,6 +115,18 @@
         // move the space-ship
         ship.x += ship.thrust.x;
         ship.y += ship.thrust.y;
+
+        // handle edge of the screen x - with canv.width nd y - with canv.height
+        if (ship.x < 0 - ship.r) {
+          ship.x = canv.width + ship.r;
+        } else if (ship.x > canv.width + ship.r) {
+          ship.x = 0 - ship.r;
+        }
+        if (ship.y < 0 - ship.r) {
+          ship.y = canv.height + ship.r;
+        } else if (ship.y > canv.height + ship.r) {
+          ship.y = 0 - ship.r;
+        }
 
         // add center dot - fot test purpose only
         ctx.fillStyle = "red";
