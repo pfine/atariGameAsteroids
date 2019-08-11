@@ -12,6 +12,8 @@
     <script>
       var FPS = 30; // constant FPS - frames rate = 30 frames per secound
       var SHIP_SIZE = 30; // space ship size in pixels
+      var SHIP_THRUST = 5; // acceleration of the space-ship in px / sec / sec (1s: 5px, 2s: 10px, 3s: 15px ...)
+      var TURN_SPEED = 360; // turn speed in degrees pre second
 
       /** @type {HTMLCanvasElement} */
       // variable canv
@@ -24,22 +26,61 @@
         x: canv.width / 2, // put on the center of the canvas
         y: canv.height / 2,
         r: SHIP_SIZE / 2, // radius
-        a: (90 / 180) * Math.PI // direction of the ship - a for angel convert to radians - face top 90deg
+        a: (90 / 180) * Math.PI, // direction of the ship - a for angel convert to radians - face top 90deg
+        rot: 0, // rotation
+        thrusting: false,
+        thrust: {
+          x: 0,
+          y: 0
+        }
       };
 
       // set up event handlers to wait for keyDown and and kyeUp
       document.addEventListener("keydown", keyDown);
       document.addEventListener("keyup", keyUp);
-      function keyDown(params) {}
-      function keyUp(params) {}
 
-      // set up game loop - it require handfler funtion name update, and timeout in ms 1000 / FPS (frame rate)
-      setInterval(update);
+      // set up game loop - it require handfler funtion name  update, and timeout in ms 1000 / FPS (frame rate)
+      setInterval(update, 1000 / FPS);
+
+      function keyDown(/** @type {KeyboardEvent} */ ev) {
+        switch (ev.keyCode) {
+          case 37: // left arrow - rotate space-ship left
+            ship.rot = ((TURN_SPEED / 180) * Math.PI) / FPS;
+            break;
+          case 38: // up arrow - thrust the space-ship
+            ship.thrusting = true;
+            break;
+          case 39: // right arrow - rotate space-ship right
+            ship.rot = ((-TURN_SPEED / 180) * Math.PI) / FPS;
+            break;
+        }
+      }
+
+      function keyUp(/** @type {KeyboardEvent} */ ev) {
+        switch (ev.keyCode) {
+          case 37: // left arrow - stop rotating the space-ship left
+            ship.rot = 0;
+            break;
+            ś;
+          case 38: // up arrow - stop thrusting the space-ship
+            ship.thrusting = false;
+            break;
+          case 39: // right arrow - stop rotating the space-ship right
+            ship.rot = 0;
+            break;
+        }
+      }
 
       function update() {
         // draw space
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canv.width, canv.height);
+
+        // thrust the ship
+        if (ship.thrusting) {
+          ship.thrust.x += (SHIP_THRUST * Math.cos(ship.a)) / FPS;
+          ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.a)) / FPS;
+        }
 
         // draw triangular spcace-ship
         ctx.strokeStyle = "white";
@@ -63,9 +104,12 @@
         ctx.closePath();
         ctx.stroke();
 
-        // totate the space-ship
+        // rotate the space-ship
+        ship.a += ship.rot;
 
         // move the space-ship
+        ship.x += ship.thrust.x;
+        ship.y += ship.thrust.y;
 
         // add center dot - fot test purpose only
         ctx.fillStyle = "red";
