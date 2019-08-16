@@ -12,6 +12,10 @@
     <script>
       const FPS = 30; // constant FPS - frames rate = 30 frames per secound
       const FRICTION = 0.7; // friction coefficient of space ;D (0 - none, real space, 1 - lots of it)
+      const ROIDS_NUM = 3; // starting nr of asteroids in
+      const ROIDS_SIZE = 100; // asteroid size in pixels
+      const ROIDS_SPD = 50; // max asteroid speed in px per secound
+      const ROIDS_VERT = 10; // average nr of vertices on each asteroid
       const SHIP_SIZE = 30; // space ship size in pixels
       const SHIP_THRUST = 5; // acceleration of the space-ship in px / sec / sec (1s: 5px, 2s: 10px, 3s: 15px ...)
       const TURN_SPEED = 360; // turn speed in degrees pre second
@@ -36,12 +40,26 @@
         }
       };
 
+      // set up asteroids - array of asteroids
+      var roids = [];
+      createAsteroidsBelt();
+
       // set up event handlers to wait for keyDown and and kyeUp
       document.addEventListener("keydown", keyDown);
       document.addEventListener("keyup", keyUp);
 
       // set up game loop - it require handfler funtion name  update, and timeout in ms 1000 / FPS (frame rate)
       setInterval(update, 1000 / FPS);
+
+      function createAsteroidsBelt() {
+        roids = [];
+        var x, y;
+        for (let i = 0; i < ROIDS_NUM; i++) {
+          x = Math.floor(Math.random() * canv.width);
+          y = Math.floor(Math.random() * canv.height);
+          roids.push(newAsteroid(x, y));
+        }
+      }
 
       function keyDown(/** @type {KeyboardEvent} */ ev) {
         switch (ev.keyCode) {
@@ -70,6 +88,26 @@
             ship.rot = 0;
             break;
         }
+      }
+
+      function newAsteroid(x, y) {
+        // object of each asterios
+        var roid = {
+          x: x,
+          y: y,
+          // velocity on x and y axis- random generated nr, and direction as well
+          xv:
+            ((Math.random() * ROIDS_SPD) / FPS) *
+            (Math.random() < 0.5 ? 1 : -1),
+          yv:
+            ((Math.random() * ROIDS_SPD) / FPS) *
+            (Math.random() < 0.5 ? 1 : -1),
+          r: ROIDS_SIZE / 2, // radius of the asteroid
+          a: Math.random() * Math.PI, // random angel in radians
+          vert: Math.floor(Math.random() * (ROIDS_VERT + 1) + ROIDS_VERT / 2) // random nr of vertices
+        };
+
+        return roid;
       }
 
       function update() {
@@ -136,6 +174,37 @@
         );
         ctx.closePath();
         ctx.stroke();
+
+        // draw the asteroids
+        ctx.strokeStyle = "slategrey";
+        ctx.lineWidth = SHIP_SIZE / 20;
+        for (var i = 0; i < roids.length; i++) {
+          // get the astroids properties
+          var x, y, r, a, vert;
+          x = roids[i].x;
+          y = roids[i].y;
+          r = roids[i].r;
+          a = roids[i].a;
+          vert = roids[i].vert;
+
+          // draw a path
+          ctx.beginPath();
+          ctx.moveTo(x + r * Math.cos(a), y + r * Math.sin(a));
+
+          // draw a poligon
+          for (var j = 0; j < vert; j++) {
+            ctx.lineTo(
+              x + r * Math.cos(a + (j * Math.PI * 2) / vert),
+              y + r * Math.sin(a + (j * Math.PI * 2) / vert)
+            );
+          }
+          ctx.closePath();
+          ctx.stroke();
+
+          // move the asteroid
+
+          // handle age of the screen
+        }
 
         // rotate the space-ship
         ship.a += ship.rot;
