@@ -12,6 +12,7 @@
     <script>
       const FPS = 30; // constant FPS - frames rate = 30 frames per secound
       const FRICTION = 0.7; // friction coefficient of space ;D (0 - none, real space, 1 - lots of it)
+      const LASER_DIST = 0.6; // max laser distance as fraction of the screen width
       const LASER_MAX = 10; // max nr of lasers per screen at once
       const LASER_SPD = 500; // speed of laser in px per second
       const ROIDS_NUM = 3; // starting nr of asteroids in
@@ -167,7 +168,8 @@
             x: ship.x + (4 / 3) * ship.r * Math.cos(ship.a),
             y: ship.y - (4 / 3) * ship.r * Math.sin(ship.a),
             xv: (LASER_SPD * Math.cos(ship.a)) / FPS,
-            yv: (-LASER_SPD * Math.sin(ship.a)) / FPS
+            yv: (-LASER_SPD * Math.sin(ship.a)) / FPS,
+            dist: 0
           });
         }
 
@@ -369,9 +371,21 @@
         }
 
         // move lasers
-        for (var i = 0; i < ship.lasers.length; i++) {
+        for (var i = ship.lasers.length - 1; i >= 0; i--) {
+          // check distance traveled
+          if (ship.lasers[i].dist > LASER_DIST * canv.width) {
+            ship.lasers.splice(i, 1);
+            continue;
+          }
+
+          // move laser
           ship.lasers[i].x += ship.lasers[i].xv;
           ship.lasers[i].y += ship.lasers[i].yv;
+
+          // calculate distance traveled by laser
+          ship.lasers[i].dist += Math.sqrt(
+            Math.pow(ship.lasers[i].xv, 2) + Math.pow(ship.lasers[i].yv, 2)
+          );
 
           // handle age of the screen
           if (ship.lasers[i].x < 0) {
