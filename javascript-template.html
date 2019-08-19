@@ -331,8 +331,35 @@
           }
         }
 
+        // detect laser hits on asteroids - backward, be removed
+        var ax, ay, ar, lx, ly;
+        for (var i = roids.length - 1; i >= 0; i--) {
+          // get current roid property
+          ax = roids[i].x;
+          ay = roids[i].y;
+          ar = roids[i].r;
+
+          // loop over lasers - backward, be removed after hit
+          for (var j = ship.lasers.length - 1; j >= 0; j--) {
+            // get lasaer props
+            lx = ship.lasers[j].x;
+            ly = ship.lasers[j].y;
+
+            // detect hit
+            if (distBetweenPoints(ax, ay, lx, ly) < ar) {
+              // remove laser
+              ship.lasers.splice(j, 1);
+
+              // remove asteroid
+              roids.splice(i, 1);
+
+              break;
+            }
+          }
+        }
+
+        // check for asteroids collisions
         if (!exploding) {
-          // check for asteroids collisions
           if (ship.blinkNum === 0) {
             for (var i = 0; i < roids.length; i++) {
               if (
