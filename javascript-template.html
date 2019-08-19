@@ -61,7 +61,7 @@
             distBetweenPoints(ship.x, ship.y, x, y) <
             ROIDS_SIZE * 2 + ship.r
           );
-          roids.push(newAsteroid(x, y));
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 2)));
         }
       }
 
@@ -114,7 +114,7 @@
         }
       }
 
-      function newAsteroid(x, y) {
+      function newAsteroid(x, y, r) {
         // object of each asterios
         var roid = {
           x: x,
@@ -126,7 +126,8 @@
           yv:
             ((Math.random() * ROIDS_SPD) / FPS) *
             (Math.random() < 0.5 ? 1 : -1),
-          r: ROIDS_SIZE / 2, // radius of the asteroid
+          // r: ROIDS_SIZE / 2, // radius of the asteroid
+          r: r, // radius of the asteroid
           a: Math.random() * Math.PI, // random angel in radians
           vert: Math.floor(Math.random() * (ROIDS_VERT + 1) + ROIDS_VERT / 2), // random nr of vertices
           offs: [] // modify vertex locations
@@ -138,6 +139,27 @@
         }
 
         return roid;
+      }
+
+      function destroyAsteroid(index) {
+        // test
+        // roids.splice(index, 1);
+        var x = roids[index].x;
+        var y = roids[index].y;
+        var r = roids[index].r;
+
+        // split asteroids into two smaller, for big and medium, delete for small
+        if (r === Math.ceil(ROIDS_SIZE / 2)) {
+          // big (ROIDS_SIZE / 2)
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 4)));
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 4)));
+        } else if (r === Math.ceil(ROIDS_SIZE / 4)) {
+          // medium (ROIDS_SIZE / 4)
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 8)));
+          roids.push(newAsteroid(x, y, Math.ceil(ROIDS_SIZE / 8)));
+        }
+        // delete hit asteroid anyway
+        roids.splice(index, 1);
       }
 
       function newShip() {
@@ -351,7 +373,8 @@
               ship.lasers.splice(j, 1);
 
               // remove asteroid
-              roids.splice(i, 1);
+              // roids.splice(i, 1);
+              destroyAsteroid(i);
 
               break;
             }
@@ -367,6 +390,7 @@
                 ship.r + roids[i].r
               ) {
                 explodeShip();
+                destroyAsteroid(i);
               }
             }
           }
