@@ -12,6 +12,7 @@
     <script>
       const FPS = 30; // constant FPS - frames rate = 30 frames per secound
       const FRICTION = 0.7; // friction coefficient of space ;D (0 - none, real space, 1 - lots of it)
+      const LASER_EXPLODE_DUR = 0.1; // duration of the laser's explosion on hit asteroid in secound
       const LASER_DIST = 0.6; // max laser distance as fraction of the screen width
       const LASER_MAX = 10; // max nr of lasers per screen at once
       const LASER_SPD = 500; // speed of laser in px per second
@@ -26,8 +27,8 @@
       const SHIP_SIZE = 30; // space ship size in pixels
       const SHIP_THRUST = 5; // acceleration of the space-ship in px / sec / sec (1s: 5px, 2s: 10px, 3s: 15px ...)
       const SHIP_TURN_SPEED = 360; // turn speed in degrees pre second
-      const SHOW_BOUNDING = true; // show/hide collision bounding
-      const SHOW_CENTRE_DOT = true; // show/hide ship's centre dot
+      const SHOW_BOUNDING = false; // show/hide collision bounding
+      const SHOW_CENTRE_DOT = false; // show/hide ship's centre dot
 
       /** @type {HTMLCanvasElement} */
       // variable canv
@@ -191,7 +192,8 @@
             y: ship.y - (4 / 3) * ship.r * Math.sin(ship.a),
             xv: (LASER_SPD * Math.cos(ship.a)) / FPS,
             yv: (-LASER_SPD * Math.sin(ship.a)) / FPS,
-            dist: 0
+            dist: 0,
+            explodeTime: 0
           });
         }
 
@@ -368,13 +370,17 @@
             ly = ship.lasers[j].y;
 
             // detect hit
-            if (distBetweenPoints(ax, ay, lx, ly) < ar) {
+            if (
+              ship.lasers[j].explodeTime === 0 &&
+              distBetweenPoints(ax, ay, lx, ly) < ar
+            ) {
               // remove laser
-              ship.lasers.splice(j, 1);
+              // ship.lasers.splice(j, 1);
 
-              // remove asteroid
+              // destroy asteroid and activite the laser explosion
               // roids.splice(i, 1);
               destroyAsteroid(i);
+              ship.lasers[j].explodeTime = Math.ceil(LASER_EXPLODE_DUR * FPS);
 
               break;
             }
@@ -430,14 +436,27 @@
             continue;
           }
 
-          // move laser
-          ship.lasers[i].x += ship.lasers[i].xv;
-          ship.lasers[i].y += ship.lasers[i].yv;
+          // handle explosion
+          if (ship.lasers[i].explodeTime > 0) {
+            // explode
+            ship.lasers[i].explodeTime--;
 
-          // calculate distance traveled by laser
-          ship.lasers[i].dist += Math.sqrt(
-            Math.pow(ship.lasers[i].xv, 2) + Math.pow(ship.lasers[i].yv, 2)
-          );
+            // destroy laser after duration
+            if (ship.lasers[i].explodeTime === 0) {
+              ship.lasers.splice(i, 1);
+              continue;
+            }
+
+          } else {
+            // no explode - move laser
+            ship.lasers[i].x += ship.lasers[i].xv;
+            ship.lasers[i].y += ship.lasers[i].yv;
+
+            // calculate distance traveled by laser
+            ship.lasers[i].dist += Math.sqrt(
+              Math.pow(ship.lasers[i].xv, 2) + Math.pow(ship.lasers[i].yv, 2)
+            );
+          }
 
           // handle age of the screen
           if (ship.lasers[i].x < 0) {
@@ -472,17 +491,55 @@
 
         // draw lasers
         for (var i = 0; i < ship.lasers.length; i++) {
-          ctx.fillStyle = "salmon";
-          ctx.beginPath();
-          ctx.arc(
-            ship.lasers[i].x,
-            ship.lasers[i].y,
-            SHIP_SIZE / 15,
-            0,
-            Math.PI * 2,
-            false
-          );
-          ctx.fill();
+          if (ship.lasers[i].explodeTime === 0) {
+            // no laser explosion - just shoot
+            ctx.fillStyle = "salmon";
+            ctx.beginPath();
+            ctx.arc(
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              SHIP_SIZE / 15,
+              0,
+              Math.PI * 2,
+              false
+            );
+            ctx.fill();
+          } else {
+            // draw laser explosion
+            ctx.fillStyle = "orangered";
+            ctx.beginPath();
+            ctx.arc(
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              ship.r * 0.75,
+              0,
+              Math.PI * 2,
+              false
+            );
+            ctx.fill();
+            ctx.fillStyle = "orangered";
+            ctx.beginPath();
+            ctx.arc(
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              ship.r * 0.5,
+              0,
+              Math.PI * 2,
+              false
+            );
+            ctx.fill();
+            ctx.fillStyle = "pink";
+            ctx.beginPath();
+            ctx.arc(
+              ship.lasers[i].x,
+              ship.lasers[i].y,
+              ship.r * 0.25,
+              0,
+              Math.PI * 2,
+              false
+            );
+            ctx.fill();
+          }
         }
 
         // add center dot - fot test purpose only
