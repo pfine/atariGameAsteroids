@@ -36,12 +36,9 @@
       // now need context from canvas
       var ctx = canv.getContext("2d");
 
-      // space-ship object - array
-      var ship = newShip();
-
-      // set up asteroids - array of asteroids
-      var roids = [];
-      createAsteroidsBelt();
+      // set up the game parameters
+      var level, roids, ship;
+      newGame();
 
       // set up event handlers to wait for keyDown and and kyeUp
       document.addEventListener("keydown", keyDown);
@@ -53,7 +50,8 @@
       function createAsteroidsBelt() {
         roids = [];
         var x, y;
-        for (let i = 0; i < ROIDS_NUM; i++) {
+        // add level to beginig nubmer of asteroids
+        for (let i = 0; i < ROIDS_NUM + level; i++) {
           do {
             x = Math.floor(Math.random() * canv.width);
             y = Math.floor(Math.random() * canv.height);
@@ -116,16 +114,19 @@
       }
 
       function newAsteroid(x, y, r) {
+        // use multiplayer to increase spedd when on higher levels
+        var lvlMulti = 1 + 0.1 * level;
+
         // object of each asterios
         var roid = {
           x: x,
           y: y,
           // velocity on x and y axis- random generated nr, and direction as well
           xv:
-            ((Math.random() * ROIDS_SPD) / FPS) *
+            ((Math.random() * ROIDS_SPD * lvlMulti) / FPS) *
             (Math.random() < 0.5 ? 1 : -1),
           yv:
-            ((Math.random() * ROIDS_SPD) / FPS) *
+            ((Math.random() * ROIDS_SPD * lvlMulti) / FPS) *
             (Math.random() < 0.5 ? 1 : -1),
           // r: ROIDS_SIZE / 2, // radius of the asteroid
           r: r, // radius of the asteroid
@@ -161,6 +162,24 @@
         }
         // delete hit asteroid anyway
         roids.splice(index, 1);
+
+        // new lwvel when there is no asteroids
+        if (roids.length === 0) {
+          level++;
+          newLevel();
+        }
+      }
+
+      function newGame() {
+        // space-ship object - array
+        ship = newShip();
+        level = 0;
+        newLevel();
+      }
+
+      function newLevel() {
+        // set up asteroids - array of asteroids
+        createAsteroidsBelt();
       }
 
       function newShip() {
@@ -446,7 +465,6 @@
               ship.lasers.splice(i, 1);
               continue;
             }
-
           } else {
             // no explode - move laser
             ship.lasers[i].x += ship.lasers[i].xv;
