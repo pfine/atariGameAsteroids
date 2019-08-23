@@ -36,12 +36,23 @@
       const SHOW_CENTRE_DOT = false; // show/hide ship's centre dot
       const TEXT_FADE_TIME = 2.5; //text fade time in seconds
       const TEXT_SIZE = 40; // text font height in pixels
+      const SOUND_ON = true; // enable/disable sound in game
+      const MUSIC_ON = true; // enable/disable music in game
 
       /** @type {HTMLCanvasElement} */
       // variable canv
       var canv = document.getElementById("gameCanvas");
       // now need context from canvas
       var ctx = canv.getContext("2d");
+
+      // set up sound effects
+      var fxExplode = new Sound("sounds/explode.m4a");
+      var fxHit = new Sound("sounds/hit.m4a", LASER_MAX);
+      var fxLaser = new Sound("sounds/laser.m4a", LASER_MAX, 0.5);
+      var fxTrust = new Sound("sounds/thrust.m4a");
+
+      // set up music - consist of high ans low interchangable
+      var music = new Music("sounds/music-low.m4a", "sounds/music-high.m4a");
 
       // set up the game parameters
       var level, lives, roids, score, scoreHigh, ship, text, textAlpha;
@@ -77,6 +88,7 @@
 
       function explodeShip() {
         ship.explodeTime = Math.ceil(SHIP_EXPLODE_DUR * FPS); // nr of frames left to explosion, 0 - not planned
+        fxExplode.play();
         // ctx.fillStyle = "lime";
         // ctx.strokeStyle = "lime";
         // ctx.beginPath();
@@ -194,6 +206,7 @@
 
         // delete hit asteroid anyway
         roids.splice(index, 1);
+        fxHit.play();
 
         // new lwvel when there is no asteroids
         if (roids.length === 0) {
@@ -260,6 +273,7 @@
             dist: 0,
             explodeTime: 0
           });
+          fxLaser.play();
         }
 
         // prevent further shooting
@@ -289,9 +303,66 @@
         ctx.stroke();
       }
 
+      function Sound(src, maxStreams = 1, vol = 1.0) {
+        // defoult of Audio
+        this.streamNum = 0;
+        this.streams = [];
+        for (var i = 0; i < maxStreams; i++) {
+          this.streams.push(new Audio(src));
+          this.streams[i].volume = vol;
+        }
+
+        this.play = function() {
+          if (SOUND_ON) {
+            this.streamNum = (this.streamNum + 1) % maxStreams;
+            this.streams[this.streamNum].play();
+          }
+        };
+
+        this.stop = function() {
+          this.streams[this.streamNum].pause();
+          this.streams[this.streamNum].currentTime = 0;
+        };
+      }
+
+      function Music(srcLow, srcHigh) {
+        this.soundLow = new Audio(srcLow);
+        this.soundHigh = new Audio(srcHigh);
+
+        this.low = true; // low is played
+
+        this.tempo = 1.0; // seconds per beat
+        this.beatTime = 0; // frames left until next beat
+
+        this.play = function() {
+          // which track to play
+          if (MUSIC_ON) {
+            if (this.low) {
+              this.soundLow.play();
+            } else {
+              this.soundHigh.play();
+            }
+          }
+          this.low = !this.low;
+        };
+
+        this.tick = function() {
+          // functin run every frame - when to play
+          if (this.beatTime === 0) {
+            this.play();
+            this.beatTime = Math.ceil(this.tempo * FPS);
+          } else {
+            this.beatTime--;
+          }
+        };
+      }
+
       function update() {
         var blinkOn = ship.blinkNum % 2 === 0;
         var exploding = ship.explodeTime > 0;
+
+        // tick the music
+        music.tick();
 
         // draw space
         ctx.fillStyle = "black";
@@ -350,6 +421,7 @@
         if (ship.thrusting && !ship.dead) {
           ship.thrust.x += (SHIP_THRUST * Math.cos(ship.a)) / FPS;
           ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.a)) / FPS;
+          fxTrust.play();
 
           // draw the thruster flame
           if (!exploding && blinkOn) {
@@ -384,6 +456,7 @@
           // when not thrusting it will slow down in FRICTION ś
           ship.thrust.x -= (FRICTION * ship.thrust.x) / FPS;
           ship.thrust.y -= (FRICTION * ship.thrust.y) / FPS;
+          fxTrust.stop();
         }
 
         // draw the asteroids
