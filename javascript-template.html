@@ -48,11 +48,12 @@
       // set up sound effects
       var fxExplode = new Sound("sounds/explode.m4a");
       var fxHit = new Sound("sounds/hit.m4a", LASER_MAX);
-      var fxLaser = new Sound("sounds/laser.m4a", LASER_MAX, 0.5);
+      var fxLaser = new Sound("sounds/laser.m4a", LASER_MAX, 0.2);
       var fxTrust = new Sound("sounds/thrust.m4a");
 
       // set up music - consist of high ans low interchangable
       var music = new Music("sounds/music-low.m4a", "sounds/music-high.m4a");
+      var roidsLeft, roidsTotal;
 
       // set up the game parameters
       var level, lives, roids, score, scoreHigh, ship, text, textAlpha;
@@ -67,6 +68,8 @@
 
       function createAsteroidsBelt() {
         roids = [];
+        roidsTotal = (ROIDS_NUM + level) * 7;
+        roidsLeft = roidsTotal;
         var x, y;
         // add level to beginig nubmer of asteroids
         for (let i = 0; i < ROIDS_NUM + level; i++) {
@@ -207,6 +210,10 @@
         // delete hit asteroid anyway
         roids.splice(index, 1);
         fxHit.play();
+
+        // calculate ratio of remaind asteroids, to determin music tempo
+        roidsLeft--;
+        music.setAsteroidRatio(roidsLeft === 0 ? 1 : roidsLeft / roidsTotal);
 
         // new lwvel when there is no asteroids
         if (roids.length === 0) {
@@ -355,6 +362,10 @@
             this.beatTime--;
           }
         };
+
+        this.setAsteroidRatio = function(ratio) {
+          this.tempo = 1.0 - 0.75 * (1.0 - ratio);
+        }
       }
 
       function update() {
